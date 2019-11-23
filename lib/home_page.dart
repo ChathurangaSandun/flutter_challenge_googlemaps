@@ -245,7 +245,7 @@ class _GoogleMapState extends State<GoogleMapPage> with TickerProviderStateMixin
             ),
             //menu button
             Positioned(
-              bottom: realH(53),
+              top: realH(53),
               left: realW(-71 * (currentExplorePercent + currentSearchPercent)),
               child: GestureDetector(
                 onTap: () {
@@ -274,7 +274,7 @@ class _GoogleMapState extends State<GoogleMapPage> with TickerProviderStateMixin
               ),
             ),
             //menu
-            MenuWidget(currentMenuPercent: currentMenuPercent, animateMenu: animateMenu),
+             MenuWidget(currentMenuPercent: currentMenuPercent, animateMenu: animateMenu),
           ],
         ),
       ),
