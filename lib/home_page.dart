@@ -171,7 +171,7 @@ class _GoogleMapState extends State<GoogleMapPage> with TickerProviderStateMixin
             //search menu background
             offsetSearch != 0
                 ? Positioned(
-                    bottom: realH(88),
+                    top: realH(100),
                     left: realW((standardWidth - 320) / 2),
                     width: realW(320),
                     height: realH(135 * currentSearchPercent),
@@ -207,16 +207,16 @@ class _GoogleMapState extends State<GoogleMapPage> with TickerProviderStateMixin
               animateSearch: animateSearch,
             ),
             //layer button
-            MapButton(
-              currentExplorePercent: currentExplorePercent,
-              currentSearchPercent: currentSearchPercent,
-              bottom: 243,
-              offsetX: -71,
-              width: 71,
-              height: 71,
-              isRight: false,
-              icon: Icons.layers,
-            ),
+            // MapButton(
+            //   currentExplorePercent: currentExplorePercent,
+            //   currentSearchPercent: currentSearchPercent,
+            //   bottom: 243,
+            //   offsetX: -71,
+            //   width: 71,
+            //   height: 71,
+            //   isRight: false,
+            //   icon: Icons.layers,
+            // ),
             //directions button
             MapButton(
               currentSearchPercent: currentSearchPercent,
@@ -232,11 +232,12 @@ class _GoogleMapState extends State<GoogleMapPage> with TickerProviderStateMixin
                 Color(0xFF1270E3),
               ]),
             ),
+
             //my_location button
             MapButton(
               currentSearchPercent: currentSearchPercent,
               currentExplorePercent: currentExplorePercent,
-              bottom: 148,
+              bottom: 150,
               offsetX: -68,
               width: 68,
               height: 71,
