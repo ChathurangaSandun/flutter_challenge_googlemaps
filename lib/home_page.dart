@@ -1,10 +1,11 @@
+import 'dart:async';
 import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'components/components.dart';
 import 'helper/ui_helper.dart';
 
@@ -17,7 +18,8 @@ class GoogleMapPage extends StatefulWidget {
   }
 }
 
-class _GoogleMapState extends State<GoogleMapPage> with TickerProviderStateMixin {
+class _GoogleMapState extends State<GoogleMapPage>
+    with TickerProviderStateMixin {
   AnimationController animationControllerExplore;
   AnimationController animationControllerSearch;
   AnimationController animationControllerMenu;
@@ -25,9 +27,17 @@ class _GoogleMapState extends State<GoogleMapPage> with TickerProviderStateMixin
   Animation<double> animation;
   Animation<double> animationW;
   Animation<double> animationR;
+  bool isCreatedMap = false;
+
+  static LatLng _initialPosition;
+  final Set<Marker> _markers = {};
+
+  //google map
+  Completer<GoogleMapController> _mapController = Completer();
 
   /// get currentOffset percent
-  get currentExplorePercent => max(0.0, min(1.0, offsetExplore / (760.0 - 122.0)));
+  get currentExplorePercent =>
+      max(0.0, min(1.0, offsetExplore / (760.0 - 122.0)));
   get currentSearchPercent => max(0.0, min(1.0, offsetSearch / (347 - 68.0)));
   get currentMenuPercent => max(0.0, min(1.0, offsetMenu / 358));
 
@@ -38,6 +48,13 @@ class _GoogleMapState extends State<GoogleMapPage> with TickerProviderStateMixin
   bool isExploreOpen = false;
   bool isSearchOpen = false;
   bool isMenuOpen = false;
+
+  // google map
+  static final CameraPosition _kGooglePlex = CameraPosition(
+    
+    target: LatLng(6.913452, 79.854703),
+    zoom: 14.4746,
+  );
 
   /// search drag callback
   void onSearchHorizontalDragUpdate(details) {
@@ -68,76 +85,112 @@ class _GoogleMapState extends State<GoogleMapPage> with TickerProviderStateMixin
   void animateExplore(bool open) {
     animationControllerExplore = AnimationController(
         duration: Duration(
-            milliseconds: 1 + (800 * (isExploreOpen ? currentExplorePercent : (1 - currentExplorePercent))).toInt()),
+            milliseconds: 1 +
+                (800 *
+                        (isExploreOpen
+                            ? currentExplorePercent
+                            : (1 - currentExplorePercent)))
+                    .toInt()),
         vsync: this);
-    curve = CurvedAnimation(parent: animationControllerExplore, curve: Curves.ease);
-    animation = Tween(begin: offsetExplore, end: open ? 760.0 - 122 : 0.0).animate(curve)
-      ..addListener(() {
-        setState(() {
-          offsetExplore = animation.value;
-        });
-      })
-      ..addStatusListener((status) {
-        if (status == AnimationStatus.completed) {
-          isExploreOpen = open;
-        }
-      });
+    curve =
+        CurvedAnimation(parent: animationControllerExplore, curve: Curves.ease);
+    animation = Tween(begin: offsetExplore, end: open ? 760.0 - 122 : 0.0)
+        .animate(curve)
+          ..addListener(() {
+            setState(() {
+              offsetExplore = animation.value;
+            });
+          })
+          ..addStatusListener((status) {
+            if (status == AnimationStatus.completed) {
+              isExploreOpen = open;
+            }
+          });
     animationControllerExplore.forward();
   }
 
   void animateSearch(bool open) {
     animationControllerSearch = AnimationController(
         duration: Duration(
-            milliseconds: 1 + (800 * (isSearchOpen ? currentSearchPercent : (1 - currentSearchPercent))).toInt()),
+            milliseconds: 1 +
+                (800 *
+                        (isSearchOpen
+                            ? currentSearchPercent
+                            : (1 - currentSearchPercent)))
+                    .toInt()),
         vsync: this);
-    curve = CurvedAnimation(parent: animationControllerSearch, curve: Curves.ease);
-    animation = Tween(begin: offsetSearch, end: open ? 347.0 - 68.0 : 0.0).animate(curve)
-      ..addListener(() {
-        setState(() {
-          offsetSearch = animation.value;
-        });
-      })
-      ..addStatusListener((status) {
-        if (status == AnimationStatus.completed) {
-          isSearchOpen = open;
-        }
-      });
+    curve =
+        CurvedAnimation(parent: animationControllerSearch, curve: Curves.ease);
+    animation = Tween(begin: offsetSearch, end: open ? 347.0 - 68.0 : 0.0)
+        .animate(curve)
+          ..addListener(() {
+            setState(() {
+              offsetSearch = animation.value;
+            });
+          })
+          ..addStatusListener((status) {
+            if (status == AnimationStatus.completed) {
+              isSearchOpen = open;
+            }
+          });
     animationControllerSearch.forward();
   }
 
   void animateMenu(bool open) {
-    animationControllerMenu = AnimationController(duration: Duration(milliseconds: 500), vsync: this);
-    curve = CurvedAnimation(parent: animationControllerMenu, curve: Curves.ease);
-    animation = Tween(begin: open ? 0.0 : 358.0, end: open ? 358.0 : 0.0).animate(curve)
-      ..addListener(() {
-        setState(() {
-          offsetMenu = animation.value;
-        });
-      })
-      ..addStatusListener((status) {
-        if (status == AnimationStatus.completed) {
-          isMenuOpen = open;
-        }
-      });
+    animationControllerMenu =
+        AnimationController(duration: Duration(milliseconds: 500), vsync: this);
+    curve =
+        CurvedAnimation(parent: animationControllerMenu, curve: Curves.ease);
+    animation =
+        Tween(begin: open ? 0.0 : 358.0, end: open ? 358.0 : 0.0).animate(curve)
+          ..addListener(() {
+            setState(() {
+              offsetMenu = animation.value;
+            });
+          })
+          ..addStatusListener((status) {
+            if (status == AnimationStatus.completed) {
+              isMenuOpen = open;
+            }
+          });
     animationControllerMenu.forward();
   }
+
+  @override
+  void initState() {
+    super.initState();
+    SystemChrome.setEnabledSystemUIOverlays([]);
+    
+  }
+
 
   @override
   Widget build(BuildContext context) {
     screenWidth = MediaQuery.of(context).size.width;
     screenHeight = MediaQuery.of(context).size.height;
+
+    if (!isCreatedMap) {
+      changeGoogleMapStyle();
+    }
+
     return Scaffold(
       body: SizedBox(
         width: screenWidth,
         height: screenHeight,
         child: Stack(
           children: <Widget>[
-            Image.asset(
-              "assets/map.png",
-              width: screenWidth,
-              height: screenHeight,
-              fit: BoxFit.cover,
+            //google map
+            GoogleMap(
+              myLocationEnabled: true,
+              mapType: MapType.normal,
+              initialCameraPosition:_kGooglePlex,
+              onMapCreated: (GoogleMapController controller) {
+                _mapController.complete(controller);
+                isCreatedMap = true;
+                changeGoogleMapStyle();
+              },
             ),
+
             //explore
             ExploreWidget(
               currentExplorePercent: currentExplorePercent,
@@ -150,9 +203,12 @@ class _GoogleMapState extends State<GoogleMapPage> with TickerProviderStateMixin
             //blur
             offsetSearch != 0
                 ? BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 10 * currentSearchPercent, sigmaY: 10 * currentSearchPercent),
+                    filter: ImageFilter.blur(
+                        sigmaX: 10 * currentSearchPercent,
+                        sigmaY: 10 * currentSearchPercent),
                     child: Container(
-                      color: Colors.white.withOpacity(0.1 * currentSearchPercent),
+                      color:
+                          Colors.white.withOpacity(0.1 * currentSearchPercent),
                       width: screenWidth,
                       height: screenHeight,
                     ),
@@ -181,7 +237,8 @@ class _GoogleMapState extends State<GoogleMapPage> with TickerProviderStateMixin
                         decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.only(
-                                topLeft: Radius.circular(realW(33)), topRight: Radius.circular(realW(33)))),
+                                topLeft: Radius.circular(realW(33)),
+                                topRight: Radius.circular(realW(33)))),
                       ),
                     ),
                   )
@@ -266,26 +323,25 @@ class _GoogleMapState extends State<GoogleMapPage> with TickerProviderStateMixin
                     decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.only(
-                            bottomRight: Radius.circular(realW(36)), topRight: Radius.circular(realW(36))),
+                            bottomRight: Radius.circular(realW(36)),
+                            topRight: Radius.circular(realW(36))),
                         boxShadow: [
-                          BoxShadow(color: Color.fromRGBO(0, 0, 0, 0.3), blurRadius: realW(36)),
+                          BoxShadow(
+                              color: Color.fromRGBO(0, 0, 0, 0.3),
+                              blurRadius: realW(36)),
                         ]),
                   ),
                 ),
               ),
             ),
             //menu
-             MenuWidget(currentMenuPercent: currentMenuPercent, animateMenu: animateMenu),
+            MenuWidget(
+                currentMenuPercent: currentMenuPercent,
+                animateMenu: animateMenu),
           ],
         ),
       ),
     );
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    SystemChrome.setEnabledSystemUIOverlays([]);
   }
 
   @override
@@ -294,5 +350,19 @@ class _GoogleMapState extends State<GoogleMapPage> with TickerProviderStateMixin
     animationControllerExplore?.dispose();
     animationControllerSearch?.dispose();
     animationControllerMenu?.dispose();
+  }
+
+  void changeGoogleMapStyle() async {
+    getJsonFile("assets/light.json").then(setMapStyle);
+  }
+
+  Future<String> getJsonFile(String path) async {
+    return await rootBundle.loadString(path);
+  }
+
+  void setMapStyle(String mapStyle) async {
+    // https://www.youtube.com/watch?v=XAowXcmQ-kA
+    final GoogleMapController controller = await _mapController.future;
+    controller.setMapStyle(mapStyle);
   }
 }

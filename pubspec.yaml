@@ -19,6 +19,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  
+  google_maps_flutter: ^0.5.21+12
+  
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -27,6 +30,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+ 
 
 
 # For information on the generic Dart part of this file, see the
@@ -57,6 +61,7 @@ flutter:
      - search.png
      - avatar.png
      - lable.png
+     - light.json
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
